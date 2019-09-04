@@ -47,6 +47,7 @@ class VideoPlayerValue {
     this.isLooping = false,
     this.isBuffering = false,
     this.volume = 1.0,
+    this.speed = 1.0,
     this.errorDescription,
   });
 
@@ -88,6 +89,8 @@ class VideoPlayerValue {
   /// Is null when [initialized] is false.
   final Size size;
 
+  final double speed;
+
   bool get initialized => duration != null;
   bool get hasError => errorDescription != null;
   double get aspectRatio => size != null ? size.width / size.height : 1.0;
@@ -101,6 +104,7 @@ class VideoPlayerValue {
     bool isLooping,
     bool isBuffering,
     double volume,
+    double speed,
     String errorDescription,
   }) {
     return VideoPlayerValue(
@@ -112,6 +116,7 @@ class VideoPlayerValue {
       isLooping: isLooping ?? this.isLooping,
       isBuffering: isBuffering ?? this.isBuffering,
       volume: volume ?? this.volume,
+      speed: speed ?? this.speed,
       errorDescription: errorDescription ?? this.errorDescription,
     );
   }
@@ -127,6 +132,7 @@ class VideoPlayerValue {
         'isLooping: $isLooping, '
         'isBuffering: $isBuffering'
         'volume: $volume, '
+        'speed: $speed, '
         'errorDescription: $errorDescription)';
   }
 }
@@ -308,6 +314,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyLooping();
   }
 
+  Future<void> setSpeed(double speed) async{
+    value = value.copyWith(speed: speed);
+    await _applySpeed();
+  }
+
   Future<void> pause() async {
     value = value.copyWith(isPlaying: false);
     await _applyPlayPause();
@@ -323,6 +334,19 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _channel.invokeMethod(
       'setLooping',
       <String, dynamic>{'textureId': _textureId, 'looping': value.isLooping},
+    );
+  }
+
+  Future<void> _applySpeed() async {
+    if (!value.initialized || _isDisposed) {
+      return;
+    }
+
+    print("value.speed : $value.speed");
+    // TODO(amirh): remove this on when the invokeMethod update makes it to stable Flutter.
+    // https://github.com/flutter/flutter/issues/26431
+    // ignore: strong_mode_implicit_dynamic_method
+    _channel.invokeMethod('setSpeed', <String, dynamic>{'textureId': _textureId, 'speed': value.speed},
     );
   }
 

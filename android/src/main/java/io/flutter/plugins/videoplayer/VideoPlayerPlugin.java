@@ -11,11 +11,13 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import android.view.Surface;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Player.DefaultEventListener;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -205,7 +207,14 @@ public class VideoPlayerPlugin implements MethodCallHandler {
         exoPlayer.setAudioAttributes(
             new AudioAttributes.Builder().setContentType(C.CONTENT_TYPE_MOVIE).build());
       } else {
-        exoPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        exoPlayer.setAudioStreamType(C.STREAM_TYPE_MUSIC);
+      }
+    }
+
+    void setSpeed(double speed) {
+      if(exoPlayer != null) {
+        PlaybackParameters playbackParameters = new PlaybackParameters((float)speed, 1.0F);
+        exoPlayer.setPlaybackParameters(playbackParameters);
       }
     }
 
@@ -405,6 +414,10 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       case "dispose":
         player.dispose();
         videoPlayers.remove(textureId);
+        result.success(null);
+        break;
+      case "setSpeed":
+        player.setSpeed((Double) call.argument("speed"));
         result.success(null);
         break;
       default:
